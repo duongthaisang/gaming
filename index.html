@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò chơi Đoán Số</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f1f1f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .game-container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: #34495e;
+    }
+
+    input {
+      padding: 15px;
+      font-size: 18px;
+      width: 60%;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 2px solid #3498db;
+      text-align: center;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2980b9;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .message {
+      font-size: 20px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: green;
+    }
+
+    .incorrect {
+      color: red;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .footer {
+      font-size: 14px;
+      margin-top: 30px;
+      color: #95a5a6;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Trò chơi Đoán Số</h1>
+    <p>Nhập một số từ 1 đến 100 và thử đoán số bí mật!</p>
+
+    <input type="number" id="userGuess" min="1" max="100" placeholder="Nhập số của bạn...">
+    <button id="guessBtn">Đoán</button>
+
+    <div id="message" class="message"></div>
+    <div id="attempts" class="hidden">Lần thử: <span id="attemptCount">0</span></div>
+
+    <div class="footer">
+      <p><strong>Lưu ý:</strong> Trò chơi này chỉ chơi một lần. Cố gắng đoán nhanh!</p>
+    </div>
+  </div>
+
+  <script>
+    const secretNumber = Math.floor(Math.random() * 100) + 1;
+    let attempts = 0;
+
+    const guessBtn = document.getElementById('guessBtn');
+    const userGuessInput = document.getElementById('userGuess');
+    const messageDiv = document.getElementById('message');
+    const attemptsDiv = document.getElementById('attempts');
+    const attemptCountSpan = document.getElementById('attemptCount');
+
+    guessBtn.addEventListener('click', function() {
+      const userGuess = parseInt(userGuessInput.value);
+      attempts++;
+      
+      if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+        messageDiv.textContent = "Vui lòng nhập một số hợp lệ từ 1 đến 100.";
+        messageDiv.classList.remove('correct', 'incorrect');
+        return;
+      }
+
+      attemptsDiv.classList.remove('hidden');
+      attemptCountSpan.textContent = attempts;
+
+      if (userGuess === secretNumber) {
+        messageDiv.textContent = `Chúc mừng bạn! Đoán đúng sau ${attempts} lần thử.`;
+        messageDiv.classList.add('correct');
+        messageDiv.classList.remove('incorrect');
+        guessBtn.disabled = true;
+      } else if (userGuess < secretNumber) {
+        messageDiv.textContent = "Số bạn đoán quá thấp. Cố gắng lại!";
+        messageDiv.classList.add('incorrect');
+        messageDiv.classList.remove('correct');
+      } else {
+        messageDiv.textContent = "Số bạn đoán quá cao. Cố gắng lại!";
+        messageDiv.classList.add('incorrect');
+        messageDiv.classList.remove('correct');
+      }
+    });
+  </script>
+</body>
+</html>
