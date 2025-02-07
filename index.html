@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Bài Cào</title>
+    <title>Game Bài Cao</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* Sử dụng hình ảnh làm background */
         body {
-            background-image: url('https://cdn.pixabay.com/photo/2019/09/11/19/56/chơi-bài-4780495_960_720.jpg'); /* Đường dẫn đến hình ảnh */
+            background-image: url('https://bcp.cdnchinhphu.vn/334894974524682240/2024/11/5/photoznewsvn-w960-uploaded-bfjysesfzyr-20240122-casinosceneeutfjrkr-1730794487478714728815.jpg'); /* Đường dẫn đến hình ảnh */
             background-size: cover; /* Đảm bảo hình ảnh bao phủ toàn bộ màn hình */
             background-position: center; /* Đảm bảo hình ảnh nằm giữa */
             color: white;
@@ -41,6 +41,7 @@
             padding: 10px 0;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
         }
+
         .toolbar button {
             background: none;
             border: none;
@@ -51,12 +52,15 @@
             cursor: pointer;
             transition: background 0.3s;
         }
+
         .toolbar button:hover {
             background: #444;
         }
+
         .content {
             padding: 20px;
         }
+
         .card {
             display: inline-block;
             font-size: 24px;
@@ -64,6 +68,7 @@
             padding: 10px;
             border: 2px solid white;
         }
+
         .selected {
             background-color: #ffcc00;
             color: black;
@@ -120,3 +125,91 @@
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
         let playerMoney = localStorage.getItem('playerMoney');
         let selectedBet = 0;
+        let userId = null;
+
+        // Kiểm tra nếu không có giá trị trong localStorage, set mặc định là 50000
+        if (!playerMoney) {
+            playerMoney = 50000;  
+            localStorage.setItem('playerMoney', playerMoney);
+        }
+
+        // Lấy thông tin người dùng từ Telegram Web App (nếu có)
+        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+            userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+            document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
+        }
+
+        document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+
+        // Hàm hiển thị các phần tử trong nội dung
+        function showSection(sectionId) {
+            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Hàm chọn mức cược
+        function selectBet(amount, element) {
+            document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedBet = amount;
+        }
+
+        // Hàm xáo trộn bộ bài
+        function shuffleDeck() {
+            let deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ value, suit });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        // Hàm lấy giá trị của từng lá bài
+        function getCardValue(card) {
+            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
+            if (card.value === "A") return 1;
+            return parseInt(card.value);
+        }
+
+        // Hàm tính điểm của một tay bài
+        function calculatePoints(hand) {
+            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+        }
+
+        // Hàm bắt đầu trò chơi
+        function startGame() {
+            if (selectedBet === 0) {
+                alert("Vui lòng chọn mức cược trước!");
+                return;
+            }
+            if (playerMoney < selectedBet) {
+                alert("Bạn không đủ tiền để chơi bàn này!");
+                return;
+            }
+            let deck = shuffleDeck();
+            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let playerPoints = calculatePoints(playerHand);
+            let dealerPoints = calculatePoints(dealerHand);
+
+            // Hiển thị bài của người chơi và nhà cái
+            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("playerPoints").innerText = playerPoints;
+            document.getElementById("dealerPoints").innerText = dealerPoints;
+
+            // Cập nhật số tiền của người chơi
+            if (playerPoints > dealerPoints) {
+                playerMoney += selectedBet;
+            } else if (playerPoints < dealerPoints) {
+                playerMoney -= selectedBet;
+            }
+
+            // Lưu lại số tiền trong localStorage
+            localStorage.setItem('playerMoney', playerMoney);
+            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+        }
+    </script>
+</body>
+</html>
