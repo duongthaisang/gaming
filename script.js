@@ -1,69 +1,44 @@
-const suits = ["♠", "♣", "♦", "♥"];
-const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-
-function shuffleDeck() {
-    let deck = [];
-    for (let suit of suits) {
-        for (let value of values) {
-            deck.push({ value, suit });
-        }
-    }
-    return deck.sort(() => Math.random() - 0.5);
-}
-
-function drawHand() {
-    let deck = shuffleDeck();
-    return [deck.pop(), deck.pop(), deck.pop()];
-}
-
-function calculatePoints(hand) {
-    let points = 0;
-    for (let card of hand) {
-        if (["J", "Q", "K"].includes(card.value)) {
-            points += 10;
-        } else if (card.value === "A") {
-            points += 1;
-        } else {
-            points += parseInt(card.value);
-        }
-    }
-    return points % 10;
+function showSection(sectionId) {
+    document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+    document.getElementById(sectionId).style.display = 'block';
+    updateBalance();
 }
 
 function startGame() {
-    let betAmount = parseInt(document.getElementById("betAmount").value);
-    if (betAmount <= 0 || betAmount > getBalance()) {
+    let bet = parseInt(document.getElementById('customBet').value);
+    if (!bet || bet <= 0 || bet > playerMoney) {
         alert("Số tiền cược không hợp lệ!");
         return;
     }
 
-    let playerHand = drawHand();
-    let dealerHand = drawHand();
+    let deck = shuffleDeck();
+    let playerHand = [deck.pop(), deck.pop(), deck.pop()];
+    let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
 
     let playerPoints = calculatePoints(playerHand);
     let dealerPoints = calculatePoints(dealerHand);
 
-    document.getElementById("playerHand").innerText = JSON.stringify(playerHand);
-    document.getElementById("dealerHand").innerText = JSON.stringify(dealerHand);
-    document.getElementById("playerPoints").innerText = playerPoints;
-    document.getElementById("dealerPoints").innerText = dealerPoints;
+    document.getElementById('playerHand').innerText = JSON.stringify(playerHand);
+    document.getElementById('dealerHand').innerText = JSON.stringify(dealerHand);
+    document.getElementById('playerPoints').innerText = playerPoints;
+    document.getElementById('dealerPoints').innerText = dealerPoints;
 
-    let result = "Hòa!";
+    let result = '';
     if (playerPoints > dealerPoints) {
-        result = "Bạn thắng!";
-        updateBalance(getBalance() + betAmount);
+        result = 'Thắng!';
+        playerMoney += bet;
     } else if (playerPoints < dealerPoints) {
-        result = "Bạn thua!";
-        updateBalance(getBalance() - betAmount);
+        result = 'Thua!';
+        playerMoney -= bet;
+    } else {
+        result = 'Hòa!';
     }
 
-    document.getElementById("result").innerText = result;
+    document.getElementById('result').innerText = result;
+    saveData();
 }
-function showSection(sectionId) {
-    document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
-    document.getElementById(sectionId).style.display = 'block';
-}
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM Loaded, initializing script...");
-});
 
+function updateBalance() {
+    document.getElementById('balance').innerText = playerMoney;
+    document.getElementById('gameBalance').innerText = playerMoney;
+}
