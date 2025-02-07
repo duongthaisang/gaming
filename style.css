@@ -1,0 +1,52 @@
+body {
+    background-image: url('https://img.upanh.tv/2025/02/07/shot1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.toolbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #222;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.toolbar button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    flex: 1;
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toolbar button:hover {
+    background: #444;
+}
+
+.content {
+    padding: 20px;
+}
+
+.card {
+    display: inline-block;
+    font-size: 24px;
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid white;
+}
+
+.selected {
+    background-color: #ffcc00;
+    color: black;
+}
