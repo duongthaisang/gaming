@@ -18,16 +18,24 @@
             position: fixed;
             bottom: 0;
             width: 100%;
-            background-color: black;
+            background-color: #222;
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
         }
         .toolbar button {
             background: none;
             border: none;
             color: white;
             font-size: 16px;
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toolbar button:hover {
+            background: #444;
         }
         .content {
             padding: 20px;
@@ -38,6 +46,19 @@
             margin: 10px;
             padding: 10px;
             border: 2px solid white;
+        }
+        .game-options button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 18px;
+            background-color: #ff9800;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .game-options button:hover {
+            background-color: #e68900;
         }
     </style>
 </head>
@@ -50,17 +71,32 @@
     
     <div id="game" class="content" style="display: none;">
         <h1>Chơi Game</h1>
+        <div class="game-options">
+            <button onclick="showSection('singleGame')">Chơi với Máy</button>
+            <button onclick="showSection('multiGame')">Chơi với Người</button>
+        </div>
+    </div>
+    
+    <div id="singleGame" class="content" style="display: none;">
+        <h2>Chọn Bàn Chơi</h2>
         <button onclick="startSingleGame(1000)">Bàn 1000</button>
         <button onclick="startSingleGame(5000)">Bàn 5000</button>
         <button onclick="startSingleGame(10000)">Bàn 10000</button>
     </div>
     
+    <div id="multiGame" class="content" style="display: none;">
+        <h2>Chơi với Người Khác</h2>
+        <p>Chọn bàn chơi với tối đa 4 người</p>
+        <button onclick="createRoom()">Tạo Phòng</button>
+        <button onclick="joinRoom()">Tham Gia Phòng</button>
+    </div>
+    
     <div class="toolbar">
-        <button onclick="showSection('home')">Trang chủ</button>
-        <button onclick="showSection('game')">Chơi Game</button>
-        <button onclick="showSection('shop')">Cửa hàng</button>
-        <button onclick="showSection('friends')">Bạn bè</button>
-        <button onclick="showSection('tasks')">Nhiệm vụ</button>
+        <button onclick="showSection('home')">🏠 Trang chủ</button>
+        <button onclick="showSection('game')">🎮 Chơi Game</button>
+        <button onclick="showSection('shop')">🛒 Cửa hàng</button>
+        <button onclick="showSection('friends')">👥 Bạn bè</button>
+        <button onclick="showSection('tasks')">🎯 Nhiệm vụ</button>
     </div>
     
     <script>
@@ -92,6 +128,14 @@
             if (userId) {
                 localStorage.setItem(`money_${userId}`, playerMoney);
             }
+        }
+        
+        function createRoom() {
+            alert("Tạo phòng chơi với người khác!");
+        }
+        
+        function joinRoom() {
+            alert("Tham gia phòng chơi!");
         }
     </script>
 </body>
