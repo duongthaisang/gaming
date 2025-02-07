@@ -16,17 +16,6 @@
             margin: 0;
             padding-bottom: 60px;
             text-align: center;
-            position: relative;
-        }
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: -1;
         }
         .toolbar {
             position: fixed;
@@ -36,7 +25,6 @@
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
         }
         .toolbar button {
             background: none;
@@ -44,81 +32,72 @@
             color: white;
             font-size: 16px;
             flex: 1;
-            padding: 10px;
             cursor: pointer;
-            transition: background 0.3s;
-        }
-        .toolbar button:hover {
-            background: #444;
         }
         .content {
             padding: 20px;
+        }
+        .selected {
+            background-color: #ffcc00;
+            color: black;
+        }
+        .card {
+            font-size: 24px;
+            margin: 5px;
         }
     </style>
 </head>
 <body>
     <div id="home" class="content">
-        <h1>Chào mừng đến với Game Bài Cào</h1>
+        <h1>Game Bài Cào</h1>
         <p id="userInfo">Đang tải thông tin...</p>
         <p id="money">Số tiền của bạn: $0</p>
     </div>
-
+    
     <div id="game" class="content" style="display: none;">
         <h1>Chơi Game</h1>
-        <p>Số dư: <span id="balance">0</span></p>
-        <input type="number" id="customBet" placeholder="Nhập số tiền cược" min="1000" step="1000">
-        <br><br>
+        <p>Số dư: <span id="balance"></span></p>
+        <input type="number" id="betAmount" placeholder="Nhập số tiền cược">
         <button onclick="startGame()">Chơi</button>
         <p id="result"></p>
         <div>
             <h2>Bài của bạn (<span id="playerPoints">0</span> điểm)</h2>
-            <div id="playerHand"></div>
+            <p id="playerHand"></p>
         </div>
         <div>
             <h2>Bài của nhà cái (<span id="dealerPoints">0</span> điểm)</h2>
-            <div id="dealerHand"></div>
+            <p id="dealerHand"></p>
         </div>
     </div>
-
+    
     <div id="history" class="content" style="display: none;">
-        <h2>Lịch sử thắng thua</h2>
+        <h2>Lịch sử Thắng/Thua</h2>
         <ul id="historyList"></ul>
     </div>
-
+    
+    <div id="leaderboard" class="content" style="display: none;">
+        <h2>Bảng Xếp Hạng</h2>
+        <ul id="leaderboardList"></ul>
+    </div>
+    
     <div class="toolbar">
         <button onclick="showSection('home')">🏠 Trang chủ</button>
         <button onclick="showSection('game')">🎮 Chơi Game</button>
         <button onclick="showSection('history')">📜 Lịch sử</button>
+        <button onclick="showSection('leaderboard')">🏆 Xếp hạng</button>
     </div>
-
+    
     <script>
         let playerMoney = localStorage.getItem('playerMoney') ? parseInt(localStorage.getItem('playerMoney')) : 50000;
         let history = JSON.parse(localStorage.getItem('history')) || [];
 
-        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-            document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
-        }
-        document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-        document.getElementById("balance").innerText = playerMoney;
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
-            document.getElementById(sectionId).style.display = 'block';
-            if (sectionId === "history") updateHistory();
-        }
-
-        function getCardValue(card) {
-            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
-            if (card.value === "A") return 1;
-            return parseInt(card.value);
-        }
-
-        function calculatePoints(hand) {
-            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+        function updateBalanceUI() {
+            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+            document.getElementById("balance").innerText = playerMoney;
         }
 
         function startGame() {
-            let bet = parseInt(document.getElementById("customBet").value);
+            let bet = parseInt(document.getElementById("betAmount").value);
             if (!bet || bet <= 0 || bet > playerMoney) {
                 alert("Vui lòng nhập số tiền cược hợp lệ!");
                 return;
@@ -147,13 +126,21 @@
             }
 
             document.getElementById("result").innerText = result;
-            document.getElementById("balance").innerText = playerMoney;
             localStorage.setItem('playerMoney', playerMoney);
+            updateBalanceUI(); 
 
             history.unshift({ time: new Date().toLocaleString(), result, bet });
             localStorage.setItem('history', JSON.stringify(history));
+            updateHistory();
+        }
 
-            updateHistory(); // Hiển thị lịch sử ngay sau khi chơi xong
+        function calculatePoints(hand) {
+            let points = hand.reduce((sum, card) => {
+                if (["J", "Q", "K"].includes(card.value)) return sum + 10;
+                if (card.value === "A") return sum + 1;
+                return sum + parseInt(card.value);
+            }, 0);
+            return points % 10;
         }
 
         function updateHistory() {
@@ -167,6 +154,26 @@
             });
         }
 
+        function updateLeaderboard() {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            let leaderboardList = document.getElementById("leaderboardList");
+            leaderboardList.innerHTML = "";
+
+            leaderboard.sort((a, b) => b.money - a.money).forEach(player => {
+                let li = document.createElement("li");
+                li.textContent = `${player.name}: $${player.money}`;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            if (sectionId === "history") updateHistory();
+            if (sectionId === "leaderboard") updateLeaderboard();
+        }
+
+        document.addEventListener("DOMContentLoaded", updateBalanceUI);
     </script>
 </body>
 </html>
