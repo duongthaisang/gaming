@@ -85,6 +85,11 @@
         </div>
     </div>
     
+    <div id="friends" class="content" style="display: none;">
+        <h2>Bảng xếp hạng bạn bè</h2>
+        <ul id="leaderboard"></ul>
+    </div>
+    
     <div class="toolbar">
         <button onclick="showSection('home')">🏠 Trang chủ</button>
         <button onclick="showSection('game')">🎮 Chơi Game</button>
@@ -96,17 +101,13 @@
     <script>
         const suits = ["♠", "♣", "♦", "♥"];
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        let playerMoney = 50000;
+        let playerMoney = localStorage.getItem("playerMoney") ? parseInt(localStorage.getItem("playerMoney")) : 50000;
         let selectedBet = 0;
         let userId = null;
         
         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             userId = window.Telegram.WebApp.initDataUnsafe.user.id;
             document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
-            const savedMoney = localStorage.getItem(`money_${userId}`);
-            if (savedMoney) {
-                playerMoney = parseInt(savedMoney);
-            }
         }
         document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
         
@@ -130,25 +131,8 @@
                 alert("Bạn không đủ tiền để chơi bàn này!");
                 return;
             }
-            let deck = [...suits.flatMap(suit => values.map(value => ({ value, suit })))].sort(() => Math.random() - 0.5);
-            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
-            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
-            
-            let playerPoints = playerHand.reduce((sum, card) => sum + (isNaN(card.value) ? 10 : parseInt(card.value)), 0) % 10;
-            let dealerPoints = dealerHand.reduce((sum, card) => sum + (isNaN(card.value) ? 10 : parseInt(card.value)), 0) % 10;
-            
-            document.getElementById("playerPoints").innerText = playerPoints;
-            document.getElementById("dealerPoints").innerText = dealerPoints;
-            
-            if (playerPoints > dealerPoints) {
-                playerMoney += selectedBet;
-                document.getElementById("result").innerText = "Bạn thắng!";
-            } else if (playerPoints < dealerPoints) {
-                playerMoney -= selectedBet;
-                document.getElementById("result").innerText = "Bạn thua!";
-            } else {
-                document.getElementById("result").innerText = "Hòa!";
-            }
+            playerMoney -= selectedBet;
+            localStorage.setItem("playerMoney", playerMoney);
             document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
         }
     </script>
