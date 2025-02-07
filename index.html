@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import TelegramWebApps from "@twa-dev/sdk";
 
 const suits = ["♠", "♣", "♦", "♥"];
 const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -34,10 +35,25 @@ export default function BaiCaoGame() {
   const [playerMoney, setPlayerMoney] = useState(50000);
   const [betAmount, setBetAmount] = useState(1000);
   const [result, setResult] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const initData = TelegramWebApps.initDataUnsafe;
+    if (initData && initData.user) {
+      setUserId(initData.user.id);
+      const savedMoney = localStorage.getItem(`money_${initData.user.id}`);
+      if (savedMoney) {
+        setPlayerMoney(parseInt(savedMoney));
+      }
+    }
     setDeck(shuffleDeck());
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      localStorage.setItem(`money_${userId}`, playerMoney);
+    }
+  }, [playerMoney, userId]);
 
   const startGame = () => {
     if (playerMoney < betAmount) {
@@ -56,10 +72,10 @@ export default function BaiCaoGame() {
     let dealerPoints = calculatePoints(dealerHand);
     
     if (playerPoints > dealerPoints) {
-      setPlayerMoney(playerMoney + betAmount);
+      setPlayerMoney((prev) => prev + betAmount);
       setResult("Bạn thắng!");
     } else if (playerPoints < dealerPoints) {
-      setPlayerMoney(playerMoney - betAmount);
+      setPlayerMoney((prev) => prev - betAmount);
       setResult("Bạn thua!");
     } else {
       setResult("Hòa!");
