@@ -8,24 +8,37 @@
         body {
             text-align: center;
             font-family: Arial, sans-serif;
-            background: url('https://source.unsplash.com/random/1920x1080?casino') no-repeat center center/cover;
+            background-color: #3c3c3c;
             color: white;
         }
         .game-container {
             margin-top: 20px;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            display: inline-block;
+            background: #228B22; /* Bàn bài màu xanh */
+            border-radius: 50%;
+            width: 800px;
+            height: 800px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
         }
         .player {
-            margin-bottom: 20px;
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            text-align: center;
+        }
+        .player h2 {
+            margin: 10px 0;
         }
         .cards {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
         .card {
             width: 80px;
@@ -51,29 +64,37 @@
         .actions button:hover {
             background: #ff9900;
         }
+        .player-container {
+            position: absolute;
+        }
+        /* Vị trí của người chơi */
+        #player { top: 20px; left: 50%; transform: translateX(-50%); }
+        #bot1 { top: 50%; left: 20px; transform: translateY(-50%); }
+        #bot2 { top: 50%; right: 20px; transform: translateY(-50%); }
+        #bot3 { bottom: 20px; left: 50%; transform: translateX(-50%); }
     </style>
 </head>
 <body>
-    <h1>🎲 Trò chơi Cào Dưa 🎲</h1>
+    <h1>🎲 Trò chơi Cào Dùa 🎲</h1>
     <div class="game-container">
-        <div class="player" id="player">
-            <h2>Bạn</h2>
+        <div class="player-container" id="player">
+            <h2>Bạn - $<span id="playerMoney">10000</span></h2>
             <div id="playerCards" class="cards"></div>
             <div class="actions">
                 <button onclick="startRound()">Chơi</button>
                 <button onclick="fold()">Bỏ bài</button>
             </div>
         </div>
-        <div class="player" id="bot1">
-            <h2>Bot 1</h2>
+        <div class="player-container" id="bot1">
+            <h2>Bot 1 - $<span id="bot1Money">10000</span></h2>
             <div id="bot1Cards" class="cards"></div>
         </div>
-        <div class="player" id="bot2">
-            <h2>Bot 2</h2>
+        <div class="player-container" id="bot2">
+            <h2>Bot 2 - $<span id="bot2Money">10000</span></h2>
             <div id="bot2Cards" class="cards"></div>
         </div>
-        <div class="player" id="bot3">
-            <h2>Bot 3</h2>
+        <div class="player-container" id="bot3">
+            <h2>Bot 3 - $<span id="bot3Money">10000</span></h2>
             <div id="bot3Cards" class="cards"></div>
         </div>
     </div>
@@ -82,8 +103,9 @@
         let suits = ['♥', '♦', '♣', '♠'];
         let values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
         let deck = [];
-        let playerHand = [];
-        let botHands = { bot1: [], bot2: [], bot3: [] };
+        let playerMoney = 10000;
+        let botMoney = { bot1: 10000, bot2: 10000, bot3: 10000 };
+        let betAmount = 1000;
 
         function createDeck() {
             deck = [];
@@ -96,9 +118,10 @@
         }
 
         function dealCards() {
-            playerHand = deck.splice(0, 3);
+            let playerHand = deck.splice(0, 3);
             document.getElementById("playerCards").innerHTML = playerHand.map(card => `<div class='card'>${card.value}${card.suit}</div>`).join('');
 
+            let botHands = { bot1: [], bot2: [], bot3: [] };
             for (let bot in botHands) {
                 botHands[bot] = deck.splice(0, 3);
                 document.getElementById(bot + "Cards").innerHTML = botHands[bot].map(card => `<div class='card'>${card.value}${card.suit}</div>`).join('');
@@ -106,9 +129,27 @@
         }
 
         function startRound() {
+            // Trừ tiền cược trước khi bắt đầu
+            if (playerMoney < betAmount) {
+                alert("Bạn không đủ tiền để chơi!");
+                return;
+            }
+            playerMoney -= betAmount;
+            botMoney.bot1 -= betAmount;
+            botMoney.bot2 -= betAmount;
+            botMoney.bot3 -= betAmount;
+
+            document.getElementById("playerMoney").innerText = playerMoney;
+            document.getElementById("bot1Money").innerText = botMoney.bot1;
+            document.getElementById("bot2Money").innerText = botMoney.bot2;
+            document.getElementById("bot3Money").innerText = botMoney.bot3;
+
+            // Tạo bộ bài và chia bài
             createDeck();
-            dealCards();
-            setTimeout(() => declareWinner(), 2000);
+            setTimeout(() => {
+                dealCards();
+                setTimeout(() => declareWinner(), 6000); // Chờ 6 giây sau khi mở bài
+            }, 6000);
         }
 
         function fold() {
@@ -120,6 +161,19 @@
             let winner = Math.floor(Math.random() * 4);
             let players = ["Bạn", "Bot 1", "Bot 2", "Bot 3"];
             alert(players[winner] + " thắng ván này!");
+
+            // Chuyển tiền sau khi thắng
+            if (winner === 0) {
+                playerMoney += betAmount * 3;
+            } else {
+                botMoney[`bot${winner}`] += betAmount * 3;
+            }
+
+            document.getElementById("playerMoney").innerText = playerMoney;
+            document.getElementById("bot1Money").innerText = botMoney.bot1;
+            document.getElementById("bot2Money").innerText = botMoney.bot2;
+            document.getElementById("bot3Money").innerText = botMoney.bot3;
+
             startRound();
         }
 
