@@ -7,19 +7,17 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-    <script src="script.js"></script>
 <body>
     <div id="home" class="content">
         <h1>Chào mừng đến với Game Bài Cào</h1>
         <p id="userInfo">Đang tải thông tin...</p>
-        <p id="money">Số dư: $<span id="balance">0</span></p>
-        <button onclick="showSection('game')">Bắt đầu chơi</button>
+        <p id="money">Số dư của bạn: <span id="balance">0</span></p>
     </div>
 
     <div id="game" class="content" style="display: none;">
         <h1>Chơi Game</h1>
-        <p>Số dư hiện tại: $<span id="gameBalance">0</span></p>
-        <input type="number" id="betAmount" placeholder="Nhập số tiền cược">
+        <p>Số dư: <span id="gameBalance">0</span></p>
+        <input type="number" id="customBet" placeholder="Nhập số tiền cược">
         <button onclick="startGame()">Chơi</button>
         <p id="result"></p>
         <div>
@@ -30,22 +28,23 @@
             <h2>Bài của nhà cái (<span id="dealerPoints">0</span> điểm)</h2>
             <div id="dealerHand"></div>
         </div>
-        <button onclick="showSection('home')">Quay lại</button>
     </div>
 
-    <div id="leaderboard" class="content" style="display: none;">
+    <div id="friends" class="content" style="display: none;">
         <h2>Bảng xếp hạng</h2>
-        <ul id="rankList"></ul>
-        <button onclick="showSection('home')">Quay lại</button>
+        <ul id="leaderboard"></ul>
+        <h2>Lịch sử</h2>
+        <ul id="history"></ul>
     </div>
 
     <div class="toolbar">
         <button onclick="showSection('home')">🏠 Trang chủ</button>
         <button onclick="showSection('game')">🎮 Chơi Game</button>
-        <button onclick="showSection('leaderboard')">🏆 Xếp hạng</button>
+        <button onclick="showSection('friends')">👥 Bạn bè</button>
     </div>
 
+    <script src="data.js"></script>
     <script src="telegram.js"></script>
-    <script src="storage.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
