@@ -18,6 +18,9 @@
             border-radius: 10px;
             display: inline-block;
         }
+        .player {
+            margin-bottom: 20px;
+        }
         .cards {
             display: flex;
             justify-content: center;
@@ -53,17 +56,27 @@
 <body>
     <h1>🎲 Trò chơi Liêng Tố 🎲</h1>
     <div class="game-container">
-        <h2>Bạn</h2>
-        <div id="playerCards" class="cards"></div>
-        <div class="actions">
-            <button onclick="bet()">Tố</button>
-            <button onclick="fold()">Bỏ bài</button>
+        <div class="player">
+            <h2>Bạn - $10,000</h2>
+            <div id="playerCards" class="cards"></div>
+            <div class="actions">
+                <button onclick="bet()">Tố</button>
+                <button onclick="fold()">Bỏ bài</button>
+            </div>
+        </div>
+        <div class="player">
+            <h2>Bot 1 - $10,000</h2>
+            <div id="bot1Cards" class="cards"></div>
+        </div>
+        <div class="player">
+            <h2>Bot 2 - $10,000</h2>
+            <div id="bot2Cards" class="cards"></div>
+        </div>
+        <div class="player">
+            <h2>Bot 3 - $10,000</h2>
+            <div id="bot3Cards" class="cards"></div>
         </div>
     </div>
-    <h2>Bot 1</h2>
-    <div id="bot1Cards" class="cards"></div>
-    <h2>Bot 2</h2>
-    <div id="bot2Cards" class="cards"></div>
     
     <script>
         let suits = ['♥', '♦', '♣', '♠'];
@@ -90,6 +103,7 @@
             dealCards('playerCards');
             dealCards('bot1Cards');
             dealCards('bot2Cards');
+            dealCards('bot3Cards');
         }
 
         function bet() {
