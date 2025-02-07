@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -58,6 +58,11 @@
 
         .content {
             padding: 20px;
+            display: none;
+        }
+
+        .active {
+            display: block !important;
         }
 
         .card {
@@ -86,19 +91,19 @@
     </style>
 </head>
 <body>
-    <div id="home" class="content">
-        <h1>Chào mừng đến với Game Bài cào của Anh Sang</h1>
+    <div id="home" class="content active">
+        <h1>Chào mừng đến với Game Bài Cào</h1>
         <p id="userInfo">Đang tải thông tin...</p>
-        <p id="money">Số tiền của bạn: $50000</p>
+        <p id="money">Số tiền của bạn: $...</p>
     </div>
     
-    <div id="game" class="content" style="display: none;">
+    <div id="game" class="content">
         <h1>Chơi Game</h1>
         <button onclick="showSection('singleGame')">Chơi với Máy</button>
         <button onclick="showSection('multiGame')">Chơi với Người</button>
     </div>
     
-    <div id="singleGame" class="content" style="display: none;">
+    <div id="singleGame" class="content">
         <h2>Chơi với Máy</h2>
         <p>Chọn mức cược:</p>
         <button class="bet-btn" onclick="selectBet(1000, this)">Bàn 1000</button>
@@ -117,7 +122,7 @@
         </div>
     </div>
     
-    <div id="friends" class="content" style="display: none;">
+    <div id="friends" class="content">
         <h2>Bảng xếp hạng bạn bè</h2>
         <ul id="leaderboard"></ul>
     </div>
@@ -131,26 +136,24 @@
     </div>
     
     <script>
-        const suits = ["♠", "♣", "♦", "♥"];
-        const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        let playerMoney = localStorage.getItem('playerMoney') || 50000;
+        let playerMoney = localStorage.getItem('playerMoney') ? parseInt(localStorage.getItem('playerMoney')) : 50000;
         let selectedBet = 0;
         let userId = null;
 
-        if (!localStorage.getItem('playerMoney')) {
-            localStorage.setItem('playerMoney', playerMoney);
-        }
+        window.Telegram.WebApp.ready();
 
         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-            userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-            document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
+            let user = window.Telegram.WebApp.initDataUnsafe.user;
+            document.getElementById("userInfo").innerText = `Người chơi: ${user.first_name}`;
+        } else {
+            document.getElementById("userInfo").innerText = "Không thể tải thông tin người dùng!";
         }
 
         document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
 
         function showSection(sectionId) {
-            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
-            document.getElementById(sectionId).style.display = 'block';
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
         }
 
         function selectBet(amount, element) {
@@ -160,7 +163,10 @@
         }
 
         function shuffleDeck() {
+            const suits = ["♠", "♣", "♦", "♥"];
+            const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
             let deck = [];
+
             for (let suit of suits) {
                 for (let value of values) {
                     deck.push({ value, suit });
@@ -185,26 +191,21 @@
                 return;
             }
             if (playerMoney < selectedBet) {
-                alert("Bạn không đủ tiền để chơi bàn này!");
+                alert("Bạn không đủ tiền để chơi!");
                 return;
             }
+
             let deck = shuffleDeck();
             let playerHand = [deck.pop(), deck.pop(), deck.pop()];
             let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
             let playerPoints = calculatePoints(playerHand);
             let dealerPoints = calculatePoints(dealerHand);
 
-            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
-            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
-            document.getElementById("playerPoints").innerText = playerPoints;
-            document.getElementById("dealerPoints").innerText = dealerPoints;
+            document.getElementById("playerHand").innerText = JSON.stringify(playerHand);
+            document.getElementById("dealerHand").innerText = JSON.stringify(dealerHand);
 
-            if (playerPoints > dealerPoints) {
-                playerMoney += selectedBet;
-            } else if (playerPoints < dealerPoints) {
-                playerMoney -= selectedBet;
-            }
-            localStorage.setItem('playerMoney', playerMoney); // Lưu lại số tiền sau mỗi ván chơi
+            playerMoney += playerPoints > dealerPoints ? selectedBet : -selectedBet;
+            localStorage.setItem('playerMoney', playerMoney);
             document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
         }
     </script>
