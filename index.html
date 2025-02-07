@@ -101,7 +101,7 @@
     <script>
         const suits = ["♠", "♣", "♦", "♥"];
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        let playerMoney = localStorage.getItem("playerMoney") ? parseInt(localStorage.getItem("playerMoney")) : 50000;
+        let playerMoney = 50000;
         let selectedBet = 0;
         let userId = null;
         
@@ -122,6 +122,26 @@
             selectedBet = amount;
         }
         
+        function shuffleDeck() {
+            let deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ value, suit });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+        
+        function getCardValue(card) {
+            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
+            if (card.value === "A") return 1;
+            return parseInt(card.value);
+        }
+        
+        function calculatePoints(hand) {
+            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+        }
+        
         function startGame() {
             if (selectedBet === 0) {
                 alert("Vui lòng chọn mức cược trước!");
@@ -131,8 +151,20 @@
                 alert("Bạn không đủ tiền để chơi bàn này!");
                 return;
             }
-            playerMoney -= selectedBet;
-            localStorage.setItem("playerMoney", playerMoney);
+            let deck = shuffleDeck();
+            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let playerPoints = calculatePoints(playerHand);
+            let dealerPoints = calculatePoints(dealerHand);
+            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("playerPoints").innerText = playerPoints;
+            document.getElementById("dealerPoints").innerText = dealerPoints;
+            if (playerPoints > dealerPoints) {
+                playerMoney += selectedBet;
+            } else if (playerPoints < dealerPoints) {
+                playerMoney -= selectedBet;
+            }
             document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
         }
     </script>
