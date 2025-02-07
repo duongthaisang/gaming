@@ -1,10 +1,5 @@
-let userId = null;
-
-window.onload = function () {
-    if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-        let user = window.Telegram.WebApp.initDataUnsafe.user;
-        userId = user.id;
-        document.getElementById("userInfo").innerText = `Người chơi: ${user.first_name}`;
-    }
-    updateBalanceDisplay();
-};
+window.Telegram.WebApp.ready();
+let user = Telegram.WebApp.initDataUnsafe?.user;
+if (user) {
+    document.getElementById("userInfo").innerText = `Người chơi: ${user.first_name}`;
+}
