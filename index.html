@@ -47,6 +47,10 @@
             padding: 10px;
             border: 2px solid white;
         }
+        .selected {
+            background-color: #ffcc00;
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -65,9 +69,11 @@
     <div id="singleGame" class="content" style="display: none;">
         <h2>Chơi với Máy</h2>
         <p>Chọn mức cược:</p>
-        <button onclick="startGame(1000)">Bàn 1000</button>
-        <button onclick="startGame(5000)">Bàn 5000</button>
-        <button onclick="startGame(10000)">Bàn 10000</button>
+        <button class="bet-btn" onclick="selectBet(1000, this)">Bàn 1000</button>
+        <button class="bet-btn" onclick="selectBet(5000, this)">Bàn 5000</button>
+        <button class="bet-btn" onclick="selectBet(10000, this)">Bàn 10000</button>
+        <br><br>
+        <button onclick="startGame()">Chơi</button>
         <p id="result"></p>
         <div>
             <h2>Bài của bạn (<span id="playerPoints">0</span> điểm)</h2>
@@ -91,6 +97,7 @@
         const suits = ["♠", "♣", "♦", "♥"];
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
         let playerMoney = 50000;
+        let selectedBet = 0;
         let userId = null;
         
         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
@@ -108,48 +115,41 @@
             document.getElementById(sectionId).style.display = 'block';
         }
         
-        function shuffleDeck() {
-            let deck = [];
-            for (let suit of suits) {
-                for (let value of values) {
-                    deck.push({ value, suit });
-                }
+        function selectBet(amount, element) {
+            document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedBet = amount;
+        }
+        
+        function startGame() {
+            if (selectedBet === 0) {
+                alert("Vui lòng chọn mức cược trước!");
+                return;
             }
-            return deck.sort(() => Math.random() - 0.5);
-        }
-        
-        function getCardValue(card) {
-            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
-            if (card.value === "A") return 1;
-            return parseInt(card.value);
-        }
-        
-        function calculatePoints(hand) {
-            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
-        }
-        
-        function startGame(betAmount) {
-            if (playerMoney < betAmount) {
+            if (playerMoney < selectedBet) {
                 alert("Bạn không đủ tiền để chơi bàn này!");
                 return;
             }
-            playerMoney -= betAmount;
-            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-            
-            let deck = shuffleDeck();
+            let deck = [...suits.flatMap(suit => values.map(value => ({ value, suit })))].sort(() => Math.random() - 0.5);
             let playerHand = [deck.pop(), deck.pop(), deck.pop()];
             let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
             
-            let playerPoints = calculatePoints(playerHand);
-            let dealerPoints = calculatePoints(dealerHand);
+            let playerPoints = playerHand.reduce((sum, card) => sum + (isNaN(card.value) ? 10 : parseInt(card.value)), 0) % 10;
+            let dealerPoints = dealerHand.reduce((sum, card) => sum + (isNaN(card.value) ? 10 : parseInt(card.value)), 0) % 10;
             
-            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
-            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
             document.getElementById("playerPoints").innerText = playerPoints;
             document.getElementById("dealerPoints").innerText = dealerPoints;
             
-            let result = playerPoints > dealerPoints ? "Bạn thắng!" : playerPoints < dealerPoints ? "Bạn thua!" : "Hòa!";
-            document.getElementById("result").innerText = result;
+            if (playerPoints > dealerPoints) {
+                playerMoney += selectedBet;
+                document.getElementById("result").innerText = "Bạn thắng!";
+            } else if (playerPoints < dealerPoints) {
+                playerMoney -= selectedBet;
+                document.getElementById("result").innerText = "Bạn thua!";
+            } else {
+                document.getElementById("result").innerText = "Hòa!";
+            }
+            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
         }
     </script>
 </body>
