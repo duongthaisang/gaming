@@ -1,153 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trò chơi Đoán Số</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f1f1f1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .game-container {
-      background: #fff;
-      border-radius: 10px;
-      padding: 30px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #2c3e50;
-    }
-
-    p {
-      font-size: 18px;
-      margin-bottom: 30px;
-      color: #34495e;
-    }
-
-    input {
-      padding: 15px;
-      font-size: 18px;
-      width: 60%;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: 2px solid #3498db;
-      text-align: center;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #2980b9;
-    }
-
-    button {
-      background-color: #3498db;
-      color: white;
-      padding: 15px 30px;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
-    .message {
-      font-size: 20px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-
-    .correct {
-      color: green;
-    }
-
-    .incorrect {
-      color: red;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .footer {
-      font-size: 14px;
-      margin-top: 30px;
-      color: #95a5a6;
-    }
-
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chơi Liêng Tố</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: url('https://source.unsplash.com/random/1920x1080?casino') no-repeat center center/cover;
+            color: white;
+        }
+        .game-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 120px;
+            font-size: 24px;
+            background: white;
+            color: black;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3);
+        }
+        .actions button {
+            margin: 10px;
+            padding: 12px 20px;
+            border: none;
+            background: #ffcc00;
+            color: black;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .actions button:hover {
+            background: #ff9900;
+        }
+    </style>
 </head>
 <body>
-  <div class="game-container">
-    <h1>Trò chơi Đoán Số</h1>
-    <p>Nhập một số từ 1 đến 100 và thử đoán số bí mật!</p>
-
-    <input type="number" id="userGuess" min="1" max="100" placeholder="Nhập số của bạn...">
-    <button id="guessBtn">Đoán</button>
-
-    <div id="message" class="message"></div>
-    <div id="attempts" class="hidden">Lần thử: <span id="attemptCount">0</span></div>
-
-    <div class="footer">
-      <p><strong>Lưu ý:</strong> Trò chơi này chỉ chơi một lần. Cố gắng đoán nhanh!</p>
+    <h1>🎲 Trò chơi Liêng Tố 🎲</h1>
+    <div class="game-container">
+        <h2>Bạn</h2>
+        <div id="playerCards" class="cards"></div>
+        <div class="actions">
+            <button onclick="bet()">Tố</button>
+            <button onclick="fold()">Bỏ bài</button>
+        </div>
     </div>
-  </div>
+    <h2>Bot 1</h2>
+    <div id="bot1Cards" class="cards"></div>
+    <h2>Bot 2</h2>
+    <div id="bot2Cards" class="cards"></div>
+    
+    <script>
+        let suits = ['♥', '♦', '♣', '♠'];
+        let values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        let deck = [];
 
-  <script>
-    const secretNumber = Math.floor(Math.random() * 100) + 1;
-    let attempts = 0;
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ suit, value });
+                }
+            }
+            deck.sort(() => Math.random() - 0.5);
+        }
 
-    const guessBtn = document.getElementById('guessBtn');
-    const userGuessInput = document.getElementById('userGuess');
-    const messageDiv = document.getElementById('message');
-    const attemptsDiv = document.getElementById('attempts');
-    const attemptCountSpan = document.getElementById('attemptCount');
+        function dealCards(playerId) {
+            let hand = deck.splice(0, 3);
+            document.getElementById(playerId).innerHTML = hand.map(card => `<div class='card'>${card.value}${card.suit}</div>`).join('');
+        }
 
-    guessBtn.addEventListener('click', function() {
-      const userGuess = parseInt(userGuessInput.value);
-      attempts++;
-      
-      if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
-        messageDiv.textContent = "Vui lòng nhập một số hợp lệ từ 1 đến 100.";
-        messageDiv.classList.remove('correct', 'incorrect');
-        return;
-      }
+        function startGame() {
+            createDeck();
+            dealCards('playerCards');
+            dealCards('bot1Cards');
+            dealCards('bot2Cards');
+        }
 
-      attemptsDiv.classList.remove('hidden');
-      attemptCountSpan.textContent = attempts;
+        function bet() {
+            alert("Bạn đã tố!");
+        }
 
-      if (userGuess === secretNumber) {
-        messageDiv.textContent = `Chúc mừng bạn! Đoán đúng sau ${attempts} lần thử.`;
-        messageDiv.classList.add('correct');
-        messageDiv.classList.remove('incorrect');
-        guessBtn.disabled = true;
-      } else if (userGuess < secretNumber) {
-        messageDiv.textContent = "Số bạn đoán quá thấp. Cố gắng lại!";
-        messageDiv.classList.add('incorrect');
-        messageDiv.classList.remove('correct');
-      } else {
-        messageDiv.textContent = "Số bạn đoán quá cao. Cố gắng lại!";
-        messageDiv.classList.add('incorrect');
-        messageDiv.classList.remove('correct');
-      }
-    });
-  </script>
+        function fold() {
+            alert("Bạn đã bỏ bài!");
+        }
+
+        startGame();
+    </script>
 </body>
 </html>
