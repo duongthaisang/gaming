@@ -47,19 +47,6 @@
             padding: 10px;
             border: 2px solid white;
         }
-        .game-options button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 18px;
-            background-color: #ff9800;
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .game-options button:hover {
-            background-color: #e68900;
-        }
     </style>
 </head>
 <body>
@@ -71,24 +58,25 @@
     
     <div id="game" class="content" style="display: none;">
         <h1>Chơi Game</h1>
-        <div class="game-options">
-            <button onclick="showSection('singleGame')">Chơi với Máy</button>
-            <button onclick="showSection('multiGame')">Chơi với Người</button>
-        </div>
+        <button onclick="showSection('singleGame')">Chơi với Máy</button>
+        <button onclick="showSection('multiGame')">Chơi với Người</button>
     </div>
     
     <div id="singleGame" class="content" style="display: none;">
-        <h2>Chọn Bàn Chơi</h2>
-        <button onclick="startSingleGame(1000)">Bàn 1000</button>
-        <button onclick="startSingleGame(5000)">Bàn 5000</button>
-        <button onclick="startSingleGame(10000)">Bàn 10000</button>
-    </div>
-    
-    <div id="multiGame" class="content" style="display: none;">
-        <h2>Chơi với Người Khác</h2>
-        <p>Chọn bàn chơi với tối đa 4 người</p>
-        <button onclick="createRoom()">Tạo Phòng</button>
-        <button onclick="joinRoom()">Tham Gia Phòng</button>
+        <h2>Chơi với Máy</h2>
+        <p>Chọn mức cược:</p>
+        <button onclick="startGame(1000)">Bàn 1000</button>
+        <button onclick="startGame(5000)">Bàn 5000</button>
+        <button onclick="startGame(10000)">Bàn 10000</button>
+        <p id="result"></p>
+        <div>
+            <h2>Bài của bạn (<span id="playerPoints">0</span> điểm)</h2>
+            <div id="playerHand"></div>
+        </div>
+        <div>
+            <h2>Bài của nhà cái (<span id="dealerPoints">0</span> điểm)</h2>
+            <div id="dealerHand"></div>
+        </div>
     </div>
     
     <div class="toolbar">
@@ -100,6 +88,8 @@
     </div>
     
     <script>
+        const suits = ["♠", "♣", "♦", "♥"];
+        const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
         let playerMoney = 50000;
         let userId = null;
         
@@ -118,24 +108,48 @@
             document.getElementById(sectionId).style.display = 'block';
         }
         
-        function startSingleGame(betAmount) {
+        function shuffleDeck() {
+            let deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ value, suit });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+        
+        function getCardValue(card) {
+            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
+            if (card.value === "A") return 1;
+            return parseInt(card.value);
+        }
+        
+        function calculatePoints(hand) {
+            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+        }
+        
+        function startGame(betAmount) {
             if (playerMoney < betAmount) {
                 alert("Bạn không đủ tiền để chơi bàn này!");
                 return;
             }
             playerMoney -= betAmount;
             document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-            if (userId) {
-                localStorage.setItem(`money_${userId}`, playerMoney);
-            }
-        }
-        
-        function createRoom() {
-            alert("Tạo phòng chơi với người khác!");
-        }
-        
-        function joinRoom() {
-            alert("Tham gia phòng chơi!");
+            
+            let deck = shuffleDeck();
+            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
+            
+            let playerPoints = calculatePoints(playerHand);
+            let dealerPoints = calculatePoints(dealerHand);
+            
+            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("playerPoints").innerText = playerPoints;
+            document.getElementById("dealerPoints").innerText = dealerPoints;
+            
+            let result = playerPoints > dealerPoints ? "Bạn thắng!" : playerPoints < dealerPoints ? "Bạn thua!" : "Hòa!";
+            document.getElementById("result").innerText = result;
         }
     </script>
 </body>
