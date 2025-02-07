@@ -6,11 +6,11 @@
     <title>Game Bài Cào</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Sử dụng hình ảnh làm background */
         body {
-            background-image: url('https://img.upanh.tv/2025/02/07/shot1.jpg'); /* Đường dẫn đến hình ảnh */
-            background-size: cover; /* Đảm bảo hình ảnh bao phủ toàn bộ màn hình */
-            background-position: center; /* Đảm bảo hình ảnh nằm giữa */
+            background-image: url('https://img.upanh.tv/2025/02/07/shot1.jpg');
+            background-size: cover; /* Đảm bảo hình ảnh phủ đầy màn hình */
+            background-position: center; /* Căn giữa hình ảnh */
+            background-attachment: fixed; /* Hình nền không di chuyển khi cuộn trang */
             color: white;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -19,7 +19,6 @@
             position: relative;
         }
 
-        /* Thêm một lớp overlay để điều chỉnh độ mờ */
         body::after {
             content: "";
             position: absolute;
@@ -27,8 +26,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5); /* Độ mờ */
-            z-index: -1; /* Đảm bảo lớp overlay ở dưới các phần tử khác */
+            background-color: rgba(0, 0, 0, 0.5); /* Tạo lớp phủ mờ cho hình nền */
+            z-index: -1;
         }
 
         .toolbar {
@@ -73,11 +72,23 @@
             background-color: #ffcc00;
             color: black;
         }
+
+        @media (max-width: 768px) {
+            /* Điều chỉnh cho thiết bị di động */
+            .content {
+                padding: 10px;
+            }
+
+            .toolbar button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="home" class="content">
-        <h1>Chào mừng đến với Game Bài Cào của Anh Sang</h1>
+        <h1>Chào mừng đến với Game Bài cào của Anh Sang</h1>
         <p id="userInfo">Đang tải thông tin...</p>
         <p id="money">Số tiền của bạn: $50000</p>
     </div>
@@ -129,16 +140,14 @@
 
         // Kiểm tra nếu không có giá trị trong localStorage, set mặc định là 50000
         if (!playerMoney) {
-            playerMoney = 50000;  
+            playerMoney = 50000;
             localStorage.setItem('playerMoney', playerMoney);
         }
 
-        // Lấy thông tin người dùng từ Telegram Web App (nếu có)
         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             userId = window.Telegram.WebApp.initDataUnsafe.user.id;
             document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
         }
-
         document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
 
         // Hàm hiển thị các phần tử trong nội dung
@@ -165,51 +174,4 @@
             return deck.sort(() => Math.random() - 0.5);
         }
 
-        // Hàm lấy giá trị của từng lá bài
-        function getCardValue(card) {
-            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
-            if (card.value === "A") return 1;
-            return parseInt(card.value);
-        }
-
-        // Hàm tính điểm của một tay bài
-        function calculatePoints(hand) {
-            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
-        }
-
-        // Hàm bắt đầu trò chơi
-        function startGame() {
-            if (selectedBet === 0) {
-                alert("Vui lòng chọn mức cược trước!");
-                return;
-            }
-            if (playerMoney < selectedBet) {
-                alert("Bạn không đủ tiền để chơi bàn này!");
-                return;
-            }
-            let deck = shuffleDeck();
-            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
-            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
-            let playerPoints = calculatePoints(playerHand);
-            let dealerPoints = calculatePoints(dealerHand);
-
-            // Hiển thị bài của người chơi và nhà cái
-            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
-            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
-            document.getElementById("playerPoints").innerText = playerPoints;
-            document.getElementById("dealerPoints").innerText = dealerPoints;
-
-            // Cập nhật số tiền của người chơi
-            if (playerPoints > dealerPoints) {
-                playerMoney += selectedBet;
-            } else if (playerPoints < dealerPoints) {
-                playerMoney -= selectedBet;
-            }
-
-            // Lưu lại số tiền trong localStorage
-            localStorage.setItem('playerMoney', playerMoney);
-            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-        }
-    </script>
-</body>
-</html>
+        // Hàm lấy giá trị của từn
