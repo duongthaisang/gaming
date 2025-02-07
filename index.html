@@ -3,30 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Game Bài Cao - Trải nghiệm trò chơi bài trực tuyến với máy hoặc với bạn bè.">
-    <meta name="keywords" content="game bài cao, trò chơi bài, chơi game, bài tây, game online">
-    <meta name="author" content="Game Bài Cao">
-    <title>Game Bài Cao</title>
+    <title>Game Bài Cào</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
+        /* Sử dụng hình ảnh làm background */
         body {
-            background: url('https://images.unsplash.com/photo-1602523211930-cc70b26e4ca8') no-repeat center center fixed;
-            background-size: cover;
+            background-image: url('https://cdn.pixabay.com/photo/2019/09/11/19/56/chơi-bài-4780495_960_720.jpg'); /* Đường dẫn đến hình ảnh */
+            background-size: cover; /* Đảm bảo hình ảnh bao phủ toàn bộ màn hình */
+            background-position: center; /* Đảm bảo hình ảnh nằm giữa */
             color: white;
-            font-family: 'Roboto', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding-bottom: 60px;
             text-align: center;
+            position: relative;
         }
-        h1, h2 {
-            font-family: 'Rajdhani', sans-serif;
+
+        /* Thêm một lớp overlay để điều chỉnh độ mờ */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* Độ mờ */
+            z-index: -1; /* Đảm bảo lớp overlay ở dưới các phần tử khác */
         }
+
         .toolbar {
             position: fixed;
             bottom: 0;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: #222;
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
@@ -40,11 +49,10 @@
             flex: 1;
             padding: 10px;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
+            transition: background 0.3s;
         }
         .toolbar button:hover {
             background: #444;
-            transform: scale(1.1);
         }
         .content {
             padding: 20px;
@@ -55,33 +63,10 @@
             margin: 10px;
             padding: 10px;
             border: 2px solid white;
-            border-radius: 5px;
-            transition: transform 0.2s ease;
-            background-size: cover;
-            background-position: center;
-            width: 80px;
-            height: 120px;
-        }
-        .card:hover {
-            transform: scale(1.2);
         }
         .selected {
             background-color: #ffcc00;
             color: black;
-        }
-        .bet-btn {
-            background-color: #222;
-            border: 2px solid white;
-            padding: 10px;
-            color: white;
-            font-size: 18px;
-            border-radius: 5px;
-            margin: 10px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .bet-btn:hover {
-            background-color: #444;
         }
     </style>
 </head>
@@ -133,78 +118,5 @@
     <script>
         const suits = ["♠", "♣", "♦", "♥"];
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        const cardImages = {
-            "♠": "spades",
-            "♣": "clubs",
-            "♦": "diamonds",
-            "♥": "hearts"
-        };
-        let playerMoney = 50000;
+        let playerMoney = localStorage.getItem('playerMoney');
         let selectedBet = 0;
-        let userId = null;
-        
-        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
-            userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-            document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
-        }
-        document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-        
-        function showSection(sectionId) {
-            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
-            document.getElementById(sectionId).style.display = 'block';
-        }
-        
-        function selectBet(amount, element) {
-            document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
-            element.classList.add('selected');
-            selectedBet = amount;
-        }
-        
-        function shuffleDeck() {
-            let deck = [];
-            for (let suit of suits) {
-                for (let value of values) {
-                    deck.push({ value, suit });
-                }
-            }
-            return deck.sort(() => Math.random() - 0.5);
-        }
-        
-        function getCardValue(card) {
-            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
-            if (card.value === "A") return 1;
-            return parseInt(card.value);
-        }
-        
-        function calculatePoints(hand) {
-            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
-        }
-        
-        function startGame() {
-            if (selectedBet === 0) {
-                alert("Vui lòng chọn mức cược trước!");
-                return;
-            }
-            if (playerMoney < selectedBet) {
-                alert("Bạn không đủ tiền để chơi bàn này!");
-                return;
-            }
-            let deck = shuffleDeck();
-            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
-            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
-            let playerPoints = calculatePoints(playerHand);
-            let dealerPoints = calculatePoints(dealerHand);
-            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card' style="background-image: url('images/${card.value}_${card.suit}.png');"></span>`).join(" ");
-            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card' style="background-image: url('images/${card.value}_${card.suit}.png');"></span>`).join(" ");
-            document.getElementById("playerPoints").innerText = playerPoints;
-            document.getElementById("dealerPoints").innerText = dealerPoints;
-            if (playerPoints > dealerPoints) {
-                playerMoney += selectedBet;
-            } else if (playerPoints < dealerPoints) {
-                playerMoney -= selectedBet;
-            }
-            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
-        }
-    </script>
-</body>
-</html>
