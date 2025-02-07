@@ -99,12 +99,14 @@
     
     <div id="game" class="content">
         <h1>Chơi Game</h1>
+        <p id="gameMoney">Số tiền của bạn: $...</p>
         <button onclick="showSection('singleGame')">Chơi với Máy</button>
         <button onclick="showSection('multiGame')">Chơi với Người</button>
     </div>
     
     <div id="singleGame" class="content">
         <h2>Chơi với Máy</h2>
+        <p>Số dư: <span id="gameMoney2">$...</span></p>
         <p>Chọn mức cược:</p>
         <button class="bet-btn" onclick="selectBet(1000, this)">Bàn 1000</button>
         <button class="bet-btn" onclick="selectBet(5000, this)">Bàn 5000</button>
@@ -122,23 +124,14 @@
         </div>
     </div>
     
-    <div id="friends" class="content">
-        <h2>Bảng xếp hạng bạn bè</h2>
-        <ul id="leaderboard"></ul>
-    </div>
-    
     <div class="toolbar">
         <button onclick="showSection('home')">🏠 Trang chủ</button>
         <button onclick="showSection('game')">🎮 Chơi Game</button>
-        <button onclick="showSection('shop')">🛒 Cửa hàng</button>
-        <button onclick="showSection('friends')">👥 Bạn bè</button>
-        <button onclick="showSection('tasks')">🎯 Nhiệm vụ</button>
     </div>
     
     <script>
         let playerMoney = localStorage.getItem('playerMoney') ? parseInt(localStorage.getItem('playerMoney')) : 50000;
         let selectedBet = 0;
-        let userId = null;
 
         window.Telegram.WebApp.ready();
 
@@ -149,7 +142,12 @@
             document.getElementById("userInfo").innerText = "Không thể tải thông tin người dùng!";
         }
 
-        document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+        function updateMoney() {
+            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+            document.getElementById("gameMoney").innerText = `Số tiền của bạn: $${playerMoney}`;
+            document.getElementById("gameMoney2").innerText = `$${playerMoney}`;
+        }
+        updateMoney();
 
         function showSection(sectionId) {
             document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
@@ -185,6 +183,11 @@
             return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
         }
 
+        function displayHand(hand, elementId) {
+            let handText = hand.map(card => `${card.value}${card.suit}`).join(" ");
+            document.getElementById(elementId).innerText = handText;
+        }
+
         function startGame() {
             if (selectedBet === 0) {
                 alert("Vui lòng chọn mức cược trước!");
@@ -201,12 +204,24 @@
             let playerPoints = calculatePoints(playerHand);
             let dealerPoints = calculatePoints(dealerHand);
 
-            document.getElementById("playerHand").innerText = JSON.stringify(playerHand);
-            document.getElementById("dealerHand").innerText = JSON.stringify(dealerHand);
+            displayHand(playerHand, "playerHand");
+            displayHand(dealerHand, "dealerHand");
 
-            playerMoney += playerPoints > dealerPoints ? selectedBet : -selectedBet;
+            document.getElementById("playerPoints").innerText = playerPoints;
+            document.getElementById("dealerPoints").innerText = dealerPoints;
+
+            if (playerPoints > dealerPoints) {
+                playerMoney += selectedBet;
+                document.getElementById("result").innerText = "🎉 Bạn thắng!";
+            } else if (playerPoints < dealerPoints) {
+                playerMoney -= selectedBet;
+                document.getElementById("result").innerText = "😢 Bạn thua!";
+            } else {
+                document.getElementById("result").innerText = "🤝 Hòa!";
+            }
+
             localStorage.setItem('playerMoney', playerMoney);
-            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+            updateMoney();
         }
     </script>
 </body>
