@@ -8,9 +8,9 @@
     <style>
         body {
             background-image: url('https://img.upanh.tv/2025/02/07/shot1.jpg');
-            background-size: cover; /* Đảm bảo hình ảnh phủ đầy màn hình */
-            background-position: center; /* Căn giữa hình ảnh */
-            background-attachment: fixed; /* Hình nền không di chuyển khi cuộn trang */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: white;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -26,7 +26,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5); /* Tạo lớp phủ mờ cho hình nền */
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
 
@@ -74,7 +74,6 @@
         }
 
         @media (max-width: 768px) {
-            /* Điều chỉnh cho thiết bị di động */
             .content {
                 padding: 10px;
             }
@@ -134,13 +133,11 @@
     <script>
         const suits = ["♠", "♣", "♦", "♥"];
         const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-        let playerMoney = localStorage.getItem('playerMoney');
+        let playerMoney = localStorage.getItem('playerMoney') || 50000;
         let selectedBet = 0;
         let userId = null;
 
-        // Kiểm tra nếu không có giá trị trong localStorage, set mặc định là 50000
-        if (!playerMoney) {
-            playerMoney = 50000;
+        if (!localStorage.getItem('playerMoney')) {
             localStorage.setItem('playerMoney', playerMoney);
         }
 
@@ -148,22 +145,20 @@
             userId = window.Telegram.WebApp.initDataUnsafe.user.id;
             document.getElementById("userInfo").innerText = `Người chơi: ${window.Telegram.WebApp.initDataUnsafe.user.first_name}`;
         }
+
         document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
 
-        // Hàm hiển thị các phần tử trong nội dung
         function showSection(sectionId) {
             document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
             document.getElementById(sectionId).style.display = 'block';
         }
 
-        // Hàm chọn mức cược
         function selectBet(amount, element) {
             document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
             element.classList.add('selected');
             selectedBet = amount;
         }
 
-        // Hàm xáo trộn bộ bài
         function shuffleDeck() {
             let deck = [];
             for (let suit of suits) {
@@ -174,4 +169,44 @@
             return deck.sort(() => Math.random() - 0.5);
         }
 
-        // Hàm lấy giá trị của từn
+        function getCardValue(card) {
+            if (["J", "Q", "K", "10"].includes(card.value)) return 10;
+            if (card.value === "A") return 1;
+            return parseInt(card.value);
+        }
+
+        function calculatePoints(hand) {
+            return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+        }
+
+        function startGame() {
+            if (selectedBet === 0) {
+                alert("Vui lòng chọn mức cược trước!");
+                return;
+            }
+            if (playerMoney < selectedBet) {
+                alert("Bạn không đủ tiền để chơi bàn này!");
+                return;
+            }
+            let deck = shuffleDeck();
+            let playerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let dealerHand = [deck.pop(), deck.pop(), deck.pop()];
+            let playerPoints = calculatePoints(playerHand);
+            let dealerPoints = calculatePoints(dealerHand);
+
+            document.getElementById("playerHand").innerHTML = playerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("dealerHand").innerHTML = dealerHand.map(card => `<span class='card'>${card.value}${card.suit}</span>`).join(" ");
+            document.getElementById("playerPoints").innerText = playerPoints;
+            document.getElementById("dealerPoints").innerText = dealerPoints;
+
+            if (playerPoints > dealerPoints) {
+                playerMoney += selectedBet;
+            } else if (playerPoints < dealerPoints) {
+                playerMoney -= selectedBet;
+            }
+            localStorage.setItem('playerMoney', playerMoney); // Lưu lại số tiền sau mỗi ván chơi
+            document.getElementById("money").innerText = `Số tiền của bạn: $${playerMoney}`;
+        }
+    </script>
+</body>
+</html>
