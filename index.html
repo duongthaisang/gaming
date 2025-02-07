@@ -1,106 +1,106 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trò chơi Cào Dùa</title>
-    <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            background-color: #2e8b57;
-            color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .game-container {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            display: inline-block;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .player {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .cards {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .card {
-            width: 80px;
-            height: 120px;
-            border-radius: 10px;
-            text-align: center;
-            line-height: 120px;
-            font-size: 24px;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/0/09/Back_of_playing_cards.png') no-repeat center center/cover;
-            color: black;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3);
-        }
-        .actions button {
-            margin: 10px;
-            padding: 12px 20px;
-            border: none;
-            background: #ffcc00;
-            color: black;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .actions button:hover {
-            background: #ff9900;
-        }
-        #countdown {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>🎲 Trò chơi Cào Dùa 🎲</h1>
-    <div class="game-container">
-        <div id="countdown">Sắp mở bài trong: 6s</div>
-        <div class="player" id="player">
-            <h2>Bạn - $<span id="playerMoney">10000</span></h2>
-            <div id="playerCards" class="cards"></div>
-            <div class="actions">
-                <button onclick="bet()">Cược 1000$</button>
-            </div>
-        </div>
-    </div>
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+
+const suits = ["♠", "♣", "♦", "♥"];
+const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const betOptions = [1000, 5000, 10000];
+
+const shuffleDeck = () => {
+  let deck = [];
+  for (let suit of suits) {
+    for (let value of values) {
+      deck.push({ value, suit });
+    }
+  }
+  return deck.sort(() => Math.random() - 0.5);
+};
+
+const getCardValue = (card) => {
+  if (["J", "Q", "K", "10"].includes(card.value)) return 10;
+  if (card.value === "A") return 1;
+  return parseInt(card.value);
+};
+
+const calculatePoints = (hand) => {
+  return hand.reduce((sum, card) => sum + getCardValue(card), 0) % 10;
+};
+
+export default function BaiCaoGame() {
+  const [deck, setDeck] = useState([]);
+  const [playerHand, setPlayerHand] = useState([]);
+  const [dealerHand, setDealerHand] = useState([]);
+  const [playerMoney, setPlayerMoney] = useState(50000);
+  const [betAmount, setBetAmount] = useState(1000);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    setDeck(shuffleDeck());
+  }, []);
+
+  const startGame = () => {
+    if (playerMoney < betAmount) {
+      setResult("Không đủ tiền!");
+      return;
+    }
     
-    <script>
-        let countdownTime = 6;
-        let countdownInterval;
+    let newDeck = shuffleDeck();
+    let playerHand = [newDeck.pop(), newDeck.pop(), newDeck.pop()];
+    let dealerHand = [newDeck.pop(), newDeck.pop(), newDeck.pop()];
+    
+    setPlayerHand(playerHand);
+    setDealerHand(dealerHand);
+    
+    let playerPoints = calculatePoints(playerHand);
+    let dealerPoints = calculatePoints(dealerHand);
+    
+    if (playerPoints > dealerPoints) {
+      setPlayerMoney(playerMoney + betAmount);
+      setResult("Bạn thắng!");
+    } else if (playerPoints < dealerPoints) {
+      setPlayerMoney(playerMoney - betAmount);
+      setResult("Bạn thua!");
+    } else {
+      setResult("Hòa!");
+    }
+  };
 
-        function startCountdown(callback) {
-            countdownTime = 6;
-            document.getElementById("countdown").innerText = `Sắp mở bài trong: ${countdownTime}s`;
-            countdownInterval = setInterval(() => {
-                countdownTime--;
-                document.getElementById("countdown").innerText = `Sắp mở bài trong: ${countdownTime}s`;
-                if (countdownTime === 0) {
-                    clearInterval(countdownInterval);
-                    callback();
-                }
-            }, 1000);
-        }
-
-        function bet() {
-            startCountdown(() => {
-                document.getElementById("countdown").innerText = "Đang mở bài...";
-                setTimeout(() => {
-                    document.getElementById("countdown").innerText = "Bài đã mở!";
-                }, 2000);
-            });
-        }
-    </script>
-</body>
-</html>
+  return (
+    <div className="flex flex-col items-center p-4 bg-green-800 min-h-screen text-white">
+      <h1 className="text-3xl font-bold mb-4">Game Bài Cao</h1>
+      <p className="text-lg">Số tiền của bạn: ${playerMoney}</p>
+      <div className="flex gap-2 my-4">
+        {betOptions.map((bet) => (
+          <Button key={bet} onClick={() => setBetAmount(bet)} variant={bet === betAmount ? "default" : "secondary"}>
+            Cược {bet}$
+          </Button>
+        ))}
+      </div>
+      <Button onClick={startGame} className="mb-4">Chơi</Button>
+      {result && <p className="text-xl font-bold my-2">{result}</p>}
+      <div className="flex gap-4">
+        <Card className="p-4 bg-gray-900">
+          <h2 className="text-xl mb-2">Bài của bạn ({calculatePoints(playerHand)} điểm)</h2>
+          <CardContent className="flex gap-2">
+            {playerHand.map((card, index) => (
+              <motion.div key={index} className="text-3xl" animate={{ scale: 1.1 }}>
+                {card.value}{card.suit}
+              </motion.div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card className="p-4 bg-gray-900">
+          <h2 className="text-xl mb-2">Bài của nhà cái ({calculatePoints(dealerHand)} điểm)</h2>
+          <CardContent className="flex gap-2">
+            {dealerHand.map((card, index) => (
+              <motion.div key={index} className="text-3xl" animate={{ scale: 1.1 }}>
+                {card.value}{card.suit}
+              </motion.div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
