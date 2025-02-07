@@ -59,3 +59,11 @@ function startGame() {
 
     document.getElementById("result").innerText = result;
 }
+function showSection(sectionId) {
+    document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+    document.getElementById(sectionId).style.display = 'block';
+}
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM Loaded, initializing script...");
+});
+
